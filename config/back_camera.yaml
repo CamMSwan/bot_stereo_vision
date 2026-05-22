@@ -1,0 +1,51 @@
+/**:
+  ros__parameters:
+    back:
+      # --- Parâmetros de Geometria e Estéreo ---
+      position: "back"
+      # Distância entre os centros das lentes das C920 em metros
+      baseline: 0.0976
+      # Valor inicial (será ajustado pela calibração no código)
+      focal_length: 500.0
+      # Limites de profundidade métrica em metros
+      min_depth: 0.2
+      max_depth: 7.0
+
+      # --- Configurações de Hardware (IDs /dev/videoX) ---
+      # Os IDs podem variar, use 'v4l2-ctl --list-devices' para confirmar. Se o mapa tiver ruidoso, provavel que esteja invertido. 
+      cam_left_id: 6
+      cam_right_id: 4
+      
+      # --- Resolução e Performance ---
+      width: 640
+      height: 480
+      fps: 10.0
+      target_width: 160
+      target_height: 120
+
+      # --- Configurações V4L2 (Controle de Imagem e Exposição) ---
+      # 1 = Manual, 3 = Aperture Priority Mode
+      auto_exposure: 1       
+
+      # Tempo de exposição absoluto (Valor baixo evita motion blur)
+      exposure_time_absolute: 39 
+      exposure_dynamic_framerate: 0
+      
+      gain: 10
+      brightness: 128 # Setar manualmente é melhor (Baixo para mitigar o gain alto)
+      contrast: 128   # Setar manualmente é melhor (Mais baixo, mitigar reflexo do branco)
+      saturation: 128  # Setar manualmente é melhor 
+      backlight_compensation: 0
+      power_line_frequency: 0 # 0: Disabled, 1: 50Hz, 2: 60Hz
+
+      # Balanceamento de Branco
+      white_balance_automatic: 0
+      white_balance_temperature: 4000 #Embora igual ao default, setar manualmente é melhor 
+
+      # Foco
+      #focus_automatic_continuous: 0 #Aparenta não poder controlar
+      #focus_absolute: 0
+
+      # --- Caminhos de Calibração ---
+      # O nó buscará este arquivo dentro da pasta 'config' do pacote instalado
+      map_file: "stereo_map_back.xml"
