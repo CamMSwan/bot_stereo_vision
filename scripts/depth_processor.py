@@ -80,8 +80,11 @@ class DepthProcessor:
             # Profundidade = (B * f) / d
             depth = (float(self.cfg['baseline']) * self.focal) / disp
             
-            #depth_corrigido = -0.0263*(depth*depth) + 1.0064*depth -0.0091 #(front)
-            depth_corrigido = -0.0246*(depth*depth) + 0.9713*depth -0.0018 #(back)
+            if self.position == 'front':
+                depth_corrigido = -0.0263*(depth*depth) + 1.0064*depth -0.0091 
+            if self.position == 'back':
+                depth_corrigido = -0.0246*(depth*depth) + 0.9713*depth -0.0018 
+
             # Filtra valores fora do range configurado
             min_d = self.cfg['min_depth']
             max_d = self.cfg['max_depth']

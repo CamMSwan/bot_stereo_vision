@@ -9,12 +9,12 @@
       focal_length: 500.0
       # Limites de profundidade métrica em metros
       min_depth: 0.2
-      max_depth: 7.0
+      max_depth: 5.5
 
       # --- Configurações de Hardware (IDs /dev/videoX) ---
       # Os IDs podem variar, use 'v4l2-ctl --list-devices' para confirmar. Se o mapa tiver ruidoso, provavel que esteja invertido. 
-      cam_left_id: 0
-      cam_right_id: 8
+      cam_right_id: 0
+      cam_left_id: 2
       
       # --- Resolução e Performance ---
       width: 640
@@ -48,5 +48,4 @@
 
       # --- Caminhos de Calibração ---
       # O nó buscará este arquivo dentro da pasta 'config' do pacote instalado
-      #map_file: "stereo_map_front.xml"
-      map_file: "stereo_map_back.xml"
+      map_file: "stereo_map_front.xml"
