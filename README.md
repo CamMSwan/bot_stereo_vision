@@ -1,82 +1,87 @@
-# Módulo de Visão Estéreo do BotBot (`bot_stereo_vision`)
+# Lost Cost Stereo Vision Module (`bot_stereo_vision`)
 
-**Projeto CAPSTONE - Insper (Semestre 2026.1)** *Alternativa de Visão Estéreo de Baixo Custo para Navegação Autônoma de Robôs.*
-
----
-
-## 1. Introdução
-
-Este repositório contém o pacote ROS 2 `bot_stereo_vision`, desenvolvido como projeto de fim de curso (Capstone/TCC) na Engenharia do Insper no semestre 2026.1. 
-
-O objetivo central do projeto é projetar, implementar e validar um sistema de visão estéreo profundo de baixo custo (utilizando duas câmeras Logitech C920 convencionais) capaz de atuar como uma alternativa acessível e eficiente a sensores de profundidade comerciais (como sensores LiDAR e câmeras RGB-D dedicadas). O sistema reconstrói o ambiente tridimensional e gera mapas de profundidade acelerados por hardware diretamente na GPU, fornecendo dados cruciais de percepção para a navegação autônoma e evasão de obstáculos do robô **BotBot**.
+**CAPSTONE - Insper (2026.1 Semester)**
 
 ---
 
-## 2. Estrutura do Repositório
+## Purpose
+
+This repository contains the `bot_stereo_vision` ROS 2 package, developed as a capstone project (TCC) for the Engineering program at Insper during the 2026.1 semester. 
+
+The core objective of the project is to design, implement, and validate a low-cost deep stereo vision system (utilizing two conventional Logitech C920 cameras) capable of acting as an accessible and efficient alternative to commercial depth sensors (such as LiDAR sensors and dedicated RGB-D cameras). The system reconstructs the three-dimensional environment and generates hardware-accelerated depth maps directly on the GPU, providing crucial perception data for the autonomous navigation and obstacle avoidance of the **BotBot** robot.
+
+---
+
+## Requirements
+
+For the artificial intelligence pipeline and stereo processing to run in real-time, the hardware and software environment must strictly follow the specifications below.
+
+### 1. System Specifications
+
+* **Target Hardware:** NVIDIA Jetson Orin Nano (Developer Kit or custom carrier board).
+* **Sensors:** 2x or 4x Logitech C920 USB cameras mounted on one or two rigid stereo bases.
+* **Operating System:** Ubuntu 22.04 LTS with **JetPack 6.x** (L4T 36.5.0).
+* **Middleware:** ROS 2 Humble Hawksbill (Standard installation via `apt`).
+
+### 2. Environment Dependency Matrix (Python/CUDA)
+
+Due to ARM64 architecture constraints and hardware acceleration buses, installing AI dependencies via the standard global Python repository (`PyPI`) installs CPU-only packages, rendering the project unviable.
+
+The environment must be stabilized using the following version matrix:
+
+* **PyTorch:** `2.3.0` (Officially compiled by NVIDIA with CUDA support).
+* **Torchvision:** `0.18.0` (Natively linked to CUDA kernels).
+* **OpenAI Triton:** `3.5.0` (Required for local compilation of Group-wise Correlation — GWC volumes).
+* **NumPy:** `>=1.21.5, <2.0` (Locked to the 1.x tree to maintain compatibility with ROS `cv_bridge` and prevent C-API breakages).
+* **OpenCV Python:** `4.9.0.80` (Version compatible with the NumPy 1.x tree).
+* **TensorRT:** `10.3.0` (Injected via native JetPack packages).
+
+### 3. Automated Hardware Preparation
+
+Before building the ROS 2 workspace, hardware dependencies must be injected locally. The script included in the `requirements/` folder cleanly automates the entire process (cleaning CPU remnants, downloading 1.1GB wheels from NVIDIA, and Cargo/Pip optimization).
+
+To run the automation, execute the following in the Jetson terminal:
+
+```bash
+cd /bot_stereo_vision/requirements/
+chmod +x setup_jetson.sh
+./setup_jetson.sh
+```
+### 4. Model Installation
+Now it is necessary to create a `model/` folder inside the main structure, where you will import the FastFoundation-Stereo model.
+
+
+---
+
+## Directory Structure
 
 A organização do repositório foi projetada para manter o pacote do ROS 2 completamente isolado de scripts de pareamento de ambiente externo, garantindo portabilidade entre workspaces.
 
 ```text
-bot_stereo_vision/                  # Raiz do pacote (deve ser clonado dentro de botbrain_ws/src/)
-├── bot_stereo_vision/              # Diretório de código-fonte principal do módulo Python
-│   ├── __init__.py                 # Inicializador do pacote Python
-│   └── stereo_vision_node.py       # Nó principal do ROS 2 (Orquestrador da Pipeline Estéreo)
-├── config/                         # Parâmetros de calibração e inicialização dos sensores
-│   ├── back_camera.yaml            # Configuração de tópicos/parâmetros da câmera traseira
-│   ├── front_camera.yaml           # Configuração de tópicos/parâmetros da câmera frontal
-│   ├── stereo_map_back.xml         # Matrizes de retificação intrínseca/extrínseca (Câmera Traseira)
-│   └── stereo_map_front.xml        # Matrizes de retificação intrínseca/extrínseca (Câmera Frontal)
-├── launch/                         # Scripts de automação de inicialização de nós
-│   └── C920_cameras.launch.py      # Launch file oficial que inicializa o pipeline de visão
-├── model/                          # Diretório reservado para o modelo Fast-FoundationStereo (Deve ser criada pelo usuario)
-├── requirements/                   # Infraestrutura e governança de ambiente externo ao ROS
-│   ├── requirements.txt            # Lista de dependências necessárias para rodar o projeto. 
-│   └── setup_jetson.sh             # Script Bash para injeção limpa de pacotes CUDA da NVIDIA e instala as dependencias
-├── resource/                       # Arquivo de indexação do ecossistema ROS
-│   └── bot_stereo_vision           # Registro de index para descoberta do pacote pelo 'ament'
-├── scripts/                        # Classes auxiliares e algoritmos puros de visão computacional
-│   ├── __init__.py                 # Permite importação local de módulos
-│   ├── depth_processor.py          # Processador e gerador do mapa de correlação e profundidade
-│   └── frame_grabber_stereo.py     # Captura sincronizada de frames via V4L2/OpenCV
-├── .gitignore                      # Filtro de arquivos descartáveis para o controle de versão (Git)
-├── package.xml                     # Metadados do pacote e declaração de dependências do ROS 2
-├── README.md                       # Documentação técnica oficial do sistema
-├── setup.cfg                       # Configuração de diretórios de instalação para o setuptools
-└── setup.py                        # Script de build do colcon e mapeamento de console_scripts 
+bot_stereo_vision/                  # Package root (must be cloned inside botbrain_ws/src/)
+├── bot_stereo_vision/              # Main source code directory of the Python module
+│   ├── __init__.py                 # Python package initializer
+│   └── stereo_vision_node.py       # Main ROS 2 node (Stereo Pipeline Orchestrator)
+├── config/                         # Calibration and initialization parameters for the sensors
+│   ├── back_camera.yaml            # Topic/parameter configuration for the rear camera
+│   ├── front_camera.yaml           # Topic/parameter configuration for the front camera
+│   ├── stereo_map_back.xml         # Intrinsic/extrinsic rectification matrices (Rear Camera)
+│   └── stereo_map_front.xml        # Intrinsic/extrinsic rectification matrices (Front Camera)
+├── launch/                         # Node initialization automation scripts
+│   └── C920_cameras.launch.py      # Official launch file that initializes the vision pipeline
+├── model/                          # Directory reserved for the Fast-FoundationStereo model (Must be created by the user)
+├── requirements/                   # Infrastructure and environment governance external to ROS
+│   ├── requirements.txt            # List of dependencies required to run the project
+│   └── setup_jetson.sh             # Bash script for clean injection of NVIDIA CUDA packages and installing dependencies
+├── resource/                       # ROS ecosystem indexing file
+│   └── bot_stereo_vision           # Index registry for package discovery by 'ament'
+├── scripts/                        # Helper classes and pure computer vision algorithms
+│   ├── __init__.py                 # Allows local module importation
+│   ├── depth_processor.py          # Processor and generator of the correlation and depth map
+│   └── frame_grabber_stereo.py     # Synchronized frame capture via V4L2/OpenCV
+├── .gitignore                      # Filter for disposable files for version control (Git)
+├── package.xml                     # Package metadata and ROS 2 dependency declarations
+├── README.md                       # Official technical documentation of the system
+├── setup.cfg                       # Configuration of installation directories for setuptools
+└── setup.py                        # Colcon build script and console_scripts mapping
 ```
-
----
-
-## 3. Pré-Requisitos
-
-Para que o pipeline de inteligência artificial e processamento estéreo rode em tempo real, o ambiente de hardware e software deve seguir rigidamente as especificações abaixo.
-
-### 3.1. Especificações de Sistema
-* **Hardware Alvo:** NVIDIA Jetson Orin Nano (Developer Kit ou placa base customizada).
-* **Sensores:** 2x ou 4x Câmeras USB Logitech C920 montadas em um ou duas base estéreo rígida.
-* **Sistema Operacional:** Ubuntu 22.04 LTS com **JetPack 6.x** (L4T 36.5.0).
-* **Middleware:** ROS 2 Humble Hawksbill (Instalação padrão via `apt`).
-
-### 3.2. Matriz de Dependências do Ambiente (Python/CUDA)
-Devido a restrições de arquitetura ARM64 e barramentos de aceleração por hardware, a instalação de dependências de IA via repositório global do Python (`PyPI`) padrão instala pacotes puramente de CPU, inviabilizando o projeto. 
-
-O ambiente deve ser estabilizado utilizando a seguinte matriz de versões:
-* **PyTorch:** `2.3.0` (Compilado oficialmente pela NVIDIA com suporte a CUDA).
-* **Torchvision:** `0.18.0` (Vinculado nativamente aos kernels de CUDA).
-* **OpenAI Triton:** `3.5.0` (Necessário para a compilação local dos volumes de correlação por grupo - GWC).
-* **NumPy:** `>=1.21.5, <2.0` (Travado na árvore 1.x para manter compatibilidade com o ROS `cv_bridge` e evitar quebras de C-API).
-* **OpenCV Python:** `4.9.0.80` (Versão compatível com a árvore NumPy 1.x).
-* **TensorRT:** `10.3.0` (Injetado via pacotes nativos do JetPack).
-
-### 3.3. Preparação Automatizada do Hardware
-Antes de realizar o build do workspace do ROS 2, as dependências de hardware devem ser injetadas localmente. O script incluído na pasta `requirements/` automatiza de forma limpa todo o processo (limpeza de resíduos de CPU, download de wheels de 1.1GB da NVIDIA e Cargo/Pip optimization).
-
-Para rodar a automação, execute no terminal da Jetson:
-
-```bash
-cd ~/BotBrain/botbrain_ws/src/bot_stereo_vision/requirements/
-chmod +x setup_jetson.sh
-./setup_jetson.sh
-```
-### 3.4. Instalação do modelo
-Agora é necessário criar uma pasta `model/` dentro da estrutura principal, onde voce importará o modelo FastFoundation-Stereo. 
