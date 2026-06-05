@@ -53,7 +53,7 @@ Para que o pipeline de inteligência artificial e processamento estéreo rode em
 
 ### 3.1. Especificações de Sistema
 * **Hardware Alvo:** NVIDIA Jetson Orin Nano (Developer Kit ou placa base customizada).
-* **Sensores:** 2x Câmeras USB Logitech C920 montadas em base estéreo rígida.
+* **Sensores:** 2x ou 4x Câmeras USB Logitech C920 montadas em um ou duas base estéreo rígida.
 * **Sistema Operacional:** Ubuntu 22.04 LTS com **JetPack 6.x** (L4T 36.5.0).
 * **Middleware:** ROS 2 Humble Hawksbill (Instalação padrão via `apt`).
 
