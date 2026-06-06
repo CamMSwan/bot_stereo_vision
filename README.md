@@ -1,7 +1,9 @@
 <p align="center">
   <a href="https://botbot.bot" target="_blank">
-    <img src="https://cdn.prod.website-files.com/672ed723fbdc1589fa127239/672ed83e9ab7d55f18a3c43f_BotBot%20Purple%20Logo%20(2)-p-500.png" alt="BotBot" width="180">
+    <img src="https://cdn.prod.website-files.com/672ed723fbdc1589fa127239/672ed83e9ab7d55f18a3c43f_BotBot%20Purple%20Logo%20(2)-p-500.png" alt="BotBot" width="180" style="vertical-align: middle">
   </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://cdn.worldvectorlogo.com/logos/insper.svg" alt="Insper" height="60" style="vertical-align: middle">
 </p>
 
 # bot_stereo_vision - Low Cost Stereo Vision Module
@@ -215,7 +217,5 @@ bot_stereo_vision/                  # Package root (must be cloned inside botbra
 <p align="center">Made in Brazil</p>
 
 <p align="right">
-  <img src="https://cdn.worldvectorlogo.com/logos/insper.svg" alt="Insper" height="60">
-  &nbsp;&nbsp;
   <img src="https://cdn.prod.website-files.com/672ed723fbdc1589fa127239/67522c0342667cac3a16a994_Bot%20icon%20(1).png" alt="Bot icon" width="110">
 </p>
