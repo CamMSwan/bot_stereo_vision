@@ -22,7 +22,7 @@ def generate_launch_description():
         parameters=[
             config_front, 
             config_back,
-            {'enabled_cameras':['front', 'back']} # ['front', 'back'] se quiser ativar ambos, ou ['front'] / ['back'] para apenas um
+            {'enabled_cameras':['front']} # ['front', 'back'] se quiser ativar ambos, ou ['front'] / ['back'] para apenas um
         ],
         output='screen'
     )

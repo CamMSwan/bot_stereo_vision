@@ -69,6 +69,7 @@ class FrameGrabberStereo:
         self.lock = threading.Lock()
         self.frame_ready = threading.Event()
         self.frames_out = []
+        self.visual_frame_out = None
         
         # Inicialização do CLAHE para normalização
         self.clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
@@ -126,6 +127,8 @@ class FrameGrabberStereo:
                         rectL = cv2.remap(fL, self.m_Lx, self.m_Ly, cv2.INTER_LINEAR)
                         rectR = cv2.remap(fR, self.m_Rx, self.m_Ry, cv2.INTER_LINEAR)
                         
+                        #high_res_color = rectL #imagem 640x480 da left
+                        
                         processed = []
                         for img in [rectL, rectR]:
                             # 2. Normalização e Redimensionamento
@@ -137,8 +140,15 @@ class FrameGrabberStereo:
                             processed.append(pad)
 
                         with self.lock:
-                            self.frames_out = processed
+                            self.frames_out = processed 
+                            
+                        # --- NOVA LÓGICA DE VISUALIZAÇÃO ADICIONADA ---
+                        img_visual_norm = self._apply_clahe(rectL)
+                        # Redimensiona para a nova resolução de visualização (640x360)
+                        self.visual_frame_out = cv2.resize(img_visual_norm, (640, 360))
+                        
                         self.frame_ready.set()
+                        
                     except Exception as e:
                         print(f"[ERRO] Loop de captura ({self.pos}): {e}")
 
@@ -146,12 +156,19 @@ class FrameGrabberStereo:
             time.sleep(max(0, self.intervalo - t_proc))
 
     def read(self):
-        """Retorna o par de frames processados."""
+        """Retorna o par de frames processados originais para a IA."""
         if self.frame_ready.wait(timeout=2.0):
             self.frame_ready.clear()
             with self.lock:
                 return True, [f.copy() for f in self.frames_out]
         return False, []
+
+    def read_visual(self):
+        """Retorna o frame retificado e redimensionado para visualização (640x360)."""
+        with self.lock:
+            if self.visual_frame_out is not None:
+                return self.visual_frame_out.copy()
+        return None
 
     def release(self):
         """Encerra os recursos de hardware."""

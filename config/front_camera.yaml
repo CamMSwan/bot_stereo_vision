@@ -23,6 +23,10 @@
       target_width: 160
       target_height: 120
 
+      # Resolução de visualização 
+      visual_width: 640
+      visual_height: 360
+
       # --- Configurações V4L2 (Controle de Imagem e Exposição) ---
       # 1 = Manual, 3 = Aperture Priority Mode
       auto_exposure: 1     

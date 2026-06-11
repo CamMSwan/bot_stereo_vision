@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image, CameraInfo
+from sensor_msgs.msg import Image, CameraInfo, CompressedImage 
 from cv_bridge import CvBridge
 import numpy as np
 import os
@@ -80,6 +80,11 @@ class StereoVisionNode(Node):
             self.cameras[pos]['pub_depth_rtab'] = self.create_publisher(Image, f'/{pos}_camera/aligned_depth_to_color/image_raw', 10)
             self.cameras[pos]['pub_depth_laser'] = self.create_publisher(Image, f'/{pos}_camera/depth/image_rect_raw', 10)
             self.cameras[pos]['pub_info_laser'] = self.create_publisher(CameraInfo, f'/{pos}_camera/depth/camera_info', 10)
+            
+            # Create publisher for front camera compressed image
+            self.publisher_compressed = self.create_publisher(CompressedImage, 'compressed_camera', 10)
+            # Create publisher for back camera compressed image
+            self.publisher_compressed_back = self.create_publisher(CompressedImage, 'compressed_back_camera', 10)
 
             # 3. Inicialização do Processor (TensorRT)
             try:
@@ -144,6 +149,22 @@ class StereoVisionNode(Node):
             msg_rgb = self.bridge.cv2_to_imgmsg(visual_frame, "bgr8")
             msg_depth = self.bridge.cv2_to_imgmsg(depth_mm, "16UC1")
             msg_info = self._generate_camera_info(timestamp, pos)
+            
+            # Fluxo de Visualização Comprimida (640x360) integrado ao padrão
+            comp_msg = None
+            high_res_visual = data['processor'].grabber.read_visual()
+            
+            if high_res_visual is not None:
+                ret_enc, jpeg_buffer = cv2.imencode('.jpg', high_res_visual, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
+                if ret_enc:
+                    comp_msg = CompressedImage()
+                    comp_msg.format = "jpeg"
+                    comp_msg.data = jpeg_buffer.tobytes()
+
+            # Agrupamento de mensagens para aplicação do Header em lote (Stamp + Frame ID)
+            active_messages = [msg_rgb, msg_depth, msg_info]
+            if comp_msg is not None:
+                active_messages.append(comp_msg)
 
             # Aplicação do Header (Stamp + Frame ID)
             for m in [msg_rgb, msg_depth, msg_info]:
